@@ -1,0 +1,7 @@
+.nyc_output
+coverage
+build
+ts-build
+node_modules
+build.pem
+build.crx

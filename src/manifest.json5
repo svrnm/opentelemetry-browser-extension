@@ -1,0 +1,22 @@
+{
+   "manifest_version": 3,
+   "permissions": [
+      "activeTab", 
+      "scripting",
+      "webNavigation",
+      "storage"
+   ],
+   "action": {
+      "default_popup": "popup.html"
+   },
+   "icons": "icons/otel-logo_{size}.png",
+   "background": {
+       "service_worker": "background.js"
+   },
+   "web_accessible_resources": [
+      {
+         "resources": ["instrumentation.js"],
+         "matches": ["<all_urls>"]  
+      }
+   ]
+}
