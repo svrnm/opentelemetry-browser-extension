@@ -15,6 +15,7 @@ Run the following in your shell to download and build the extension from source:
 ```shell
 git clone https://github.com/svrnm/opentelemetry-browser-extension
 cd opentelemetry-browser-extension
+npm install
 npm run compile
 ```
 
