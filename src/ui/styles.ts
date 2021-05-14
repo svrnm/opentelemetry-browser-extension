@@ -11,4 +11,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './utils';
+import { Theme, createStyles } from '@material-ui/core';
+
+export const styles = (theme: Theme) =>
+  createStyles({
+    appBar: {
+      position: 'relative',
+    },
+    layout: {
+      width: 'auto',
+      marginLeft: theme.spacing(2),
+      marginRight: theme.spacing(2),
+      [theme.breakpoints.up(400 + theme.spacing(2) * 2)]: {
+        width: 800,
+        marginLeft: 'auto',
+        marginRight: 'auto',
+      },
+    },
+    paper: {
+      marginTop: theme.spacing(3),
+      marginBottom: theme.spacing(3),
+      padding: theme.spacing(2),
+    },
+  });

@@ -17,9 +17,7 @@ import * as HtmlWebpackPlugin from 'html-webpack-plugin';
 
 module.exports = {
   entry: {
-    common: './src/common/index.ts',
-    popup: './src/popup/index.tsx',
-    options: './src/options/index.ts',
+    ui: './src/ui/index.tsx',
     instrumentation: './src/instrumentation/index.ts',
     background: './src/background/index.ts',
   },
@@ -29,13 +27,13 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      chunks: ['popup'],
+      chunks: ['ui'],
       inject: 'head',
       template: 'src/template.html',
       filename: 'popup.html',
     }),
     new HtmlWebpackPlugin({
-      chunks: ['options'],
+      chunks: ['ui'],
       inject: 'head',
       template: 'src/template.html',
       filename: 'options.html',

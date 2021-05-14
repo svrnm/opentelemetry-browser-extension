@@ -11,6 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { capitalCase } from 'change-case';
 import * as json5 from 'json5';
 
 // From https://github.com/TypeStrong/ts-loader/blob/main/src/interfaces.ts
@@ -39,10 +40,7 @@ export default function (this: WebpackLoaderContext, source: string): string {
     Object.assign(manifest5, {
       version: p.version,
       description: p.description,
-      name: p.name
-        .split('-')
-        .map((s: string) => s.charAt(0).toUpperCase() + s.slice(1))
-        .join(' '),
+      name: capitalCase(p.name),
     }),
     null,
     2

@@ -17,24 +17,49 @@ import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
 import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xml-http-request';
 import { WebTracerProvider } from '@opentelemetry/web';
 import { ZoneContextManager } from '@opentelemetry/context-zone';
-// import { ZipkinExporter } from '@opentelemetry/exporter-zipkin';
+import { ZipkinExporter } from '@opentelemetry/exporter-zipkin';
 import { CollectorTraceExporter } from '@opentelemetry/exporter-collector';
 import {
   BatchSpanProcessor,
   ConsoleSpanExporter,
   SimpleSpanProcessor,
 } from '@opentelemetry/tracing';
+import { Settings } from '../types';
+
+const configTag = document.getElementById('open-telemetry-instrumentation');
+const { exporters }: Settings = configTag
+  ? JSON.parse(String(configTag.dataset.config))
+  : {};
 
 // Minimum required setup - supports only synchronous operations
 const provider = new WebTracerProvider();
-provider.addSpanProcessor(new SimpleSpanProcessor(new ConsoleSpanExporter()));
-provider.addSpanProcessor(
-  new BatchSpanProcessor(
-    new CollectorTraceExporter({
-      serviceName: window.location.href,
-    })
-  )
-);
+
+if (exporters.console.enabled) {
+  provider.addSpanProcessor(new SimpleSpanProcessor(new ConsoleSpanExporter()));
+}
+
+if (exporters.zipkin.enabled) {
+  provider.addSpanProcessor(
+    new BatchSpanProcessor(
+      new ZipkinExporter({
+        url: exporters.zipkin.url,
+        serviceName: window.location.href,
+      })
+    )
+  );
+}
+
+if (exporters.collectorTrace.enabled) {
+  provider.addSpanProcessor(
+    new BatchSpanProcessor(
+      new CollectorTraceExporter({
+        url: exporters.collectorTrace.url,
+        serviceName: window.location.href,
+      })
+    )
+  );
+}
+
 provider.register({
   contextManager: new ZoneContextManager(),
 });

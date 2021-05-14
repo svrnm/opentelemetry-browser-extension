@@ -12,7 +12,13 @@
  * limitations under the License.
  */
 
+import { loadFromStorage } from '../utils/storage';
+
 /* eslint-disable no-console */
+
+// the following two 'require' are here for webpack.
+require('../manifest.json5');
+require('../icons/otel-logo.png');
 
 chrome.tabs.onUpdated.addListener(
   (tabId: number, changeInfo: chrome.tabs.TabChangeInfo) => {
@@ -21,12 +27,8 @@ chrome.tabs.onUpdated.addListener(
     }
 
     chrome.tabs.get(tabId, (tab: chrome.tabs.Tab) => {
-      chrome.storage.local.get(
-        {
-          urlFilter: '',
-        },
-        ({ urlFilter }) => {
-          console.log(urlFilter, tab.url);
+      loadFromStorage()
+        .then(({ settings: { urlFilter } }) => {
           if (
             urlFilter !== '' &&
             tab.url &&
@@ -40,11 +42,18 @@ chrome.tabs.onUpdated.addListener(
                   tabId,
                 },
                 function: () => {
-                  const script = chrome.runtime.getURL('instrumentation.js');
-                  console.log('[otel-extension] injecting instrumentation.js');
-                  const tag = document.createElement('script');
-                  tag.setAttribute('src', script);
-                  document.head.appendChild(tag);
+                  chrome.storage.local.get('settings', ({ settings }) => {
+                    const script = chrome.runtime.getURL('instrumentation.js');
+                    console.log(
+                      '[otel-extension] injecting instrumentation.js'
+                    );
+                    const tag = document.createElement('script');
+                    tag.setAttribute('src', script);
+                    tag.setAttribute('id', 'open-telemetry-instrumentation');
+                    // Config is based via this data attribute, since CSP might not allow inline script tags, so this is more robust.
+                    tag.setAttribute('data-config', JSON.stringify(settings));
+                    document.head.appendChild(tag);
+                  });
                   return 1;
                 },
               },
@@ -61,8 +70,8 @@ chrome.tabs.onUpdated.addListener(
               `[otel-extension] ${tab.url} does not include ${urlFilter}`
             );
           }
-        }
-      );
+        })
+        .catch(() => {});
     });
   }
 );
