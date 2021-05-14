@@ -74,8 +74,8 @@ class App extends React.Component<PopupProps, PopupState> {
 
   toggleExporter(name: ExporterType) {
     this.setState(state => {
-      state.settings.exporters[name].enabled = !state.settings.exporters[name]
-        .enabled;
+      state.settings.exporters[name].enabled =
+        !state.settings.exporters[name].enabled;
       return state;
     });
   }

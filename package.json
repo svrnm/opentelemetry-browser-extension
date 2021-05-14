@@ -1,6 +1,6 @@
 {
   "name": "opentelemetry-browser-extension",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A browser extension that injects opentelemetry tracers into any website",
   "scripts": {
     "compile": "npx webpack --mode=production",
