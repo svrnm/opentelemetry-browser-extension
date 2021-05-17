@@ -29,6 +29,9 @@ export interface Settings {
       enabled: boolean;
       url: string;
     };
+    [ExporterType.BACKGROUND]: {
+      enabled: boolean;
+    };
   };
 }
 
@@ -44,6 +47,7 @@ export class Storage {
 export interface PopupProps extends WithStyles<typeof styles> {
   settings: Settings;
   app: AppType;
+  activeTab: chrome.tabs.Tab | undefined;
 }
 
 export interface PopupState {
@@ -59,9 +63,15 @@ export enum ExporterType {
   CONSOLE = 'console',
   ZIPKIN = 'zipkin',
   COLLECTOR_TRACE = 'collectorTrace',
+  BACKGROUND = 'background',
 }
 
 export enum PlaceholderValue {
   ZIPKIN_URL = 'http://localhost:9411/api/v2/spans',
   COLLECTOR_TRACE_URL = 'http://localhost:55681/v1/trace',
+}
+
+export enum Label {
+  SAVE = 'Save',
+  SAVE_AND_RELOAD = 'Save & Reload',
 }

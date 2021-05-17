@@ -16,6 +16,7 @@ import * as ReactDOM from 'react-dom';
 import {
   AppType,
   ExporterType,
+  Label,
   PlaceholderValue,
   PopupProps,
   PopupState,
@@ -38,6 +39,7 @@ import {
   FormGroup,
   FormHelperText,
 } from '@material-ui/core';
+import { Launch as LaunchIcon } from '@material-ui/icons';
 import { capitalCase } from 'change-case';
 import { loadFromStorage } from '../utils/storage';
 
@@ -53,6 +55,16 @@ class App extends React.Component<PopupProps, PopupState> {
 
     this.handleFilterChange = this.handleFilterChange.bind(this);
     this.handleSaveSettings = this.handleSaveSettings.bind(this);
+    this.openOptionsPage = this.openOptionsPage.bind(this);
+  }
+
+  openOptionsPage(event: React.MouseEvent) {
+    event.preventDefault();
+    if (chrome.runtime.openOptionsPage) {
+      chrome.runtime.openOptionsPage();
+    } else {
+      window.open(chrome.runtime.getURL('options.html'));
+    }
   }
 
   handleFilterChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -86,14 +98,8 @@ class App extends React.Component<PopupProps, PopupState> {
         settings: this.state.settings,
       },
       async () => {
-        if (this.props.app === 'popup') {
-          const tabs = await chrome.tabs.query({
-            active: true,
-            currentWindow: true,
-          });
-
-          const tabId = Number(tabs[0].id);
-
+        if (this.props.activeTab) {
+          const tabId = Number(this.props.activeTab.id);
           chrome.scripting.executeScript({
             target: {
               tabId,
@@ -112,6 +118,9 @@ class App extends React.Component<PopupProps, PopupState> {
 
     const classes = this.props.classes;
 
+    const saveLabel =
+      this.props.app === AppType.POPUP ? Label.SAVE_AND_RELOAD : Label.SAVE;
+
     return (
       <React.Fragment>
         <CssBaseline />
@@ -122,14 +131,20 @@ class App extends React.Component<PopupProps, PopupState> {
                 {capitalCase(packageJson.name)} ({packageJson.version})
               </Typography>
             ) : (
-              <Button
-                variant="contained"
-                color="primary"
-                size="small"
-                onClick={this.handleSaveSettings}
-              >
-                Save &amp; Reload
-              </Button>
+              <React.Fragment>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  size="small"
+                  onClick={this.handleSaveSettings}
+                >
+                  {saveLabel}
+                </Button>
+                <Typography className={classes.title} />
+                <Link href="#" onClick={this.openOptionsPage}>
+                  <LaunchIcon></LaunchIcon>
+                </Link>
+              </React.Fragment>
             )}
           </Toolbar>
         </AppBar>
@@ -291,7 +306,7 @@ class App extends React.Component<PopupProps, PopupState> {
                   size="small"
                   onClick={this.handleSaveSettings}
                 >
-                  Save
+                  {saveLabel}
                 </Button>
               </Grid>
             </Grid>
@@ -303,15 +318,25 @@ class App extends React.Component<PopupProps, PopupState> {
 }
 
 loadFromStorage()
-  .then(storage => {
+  .then(async storage => {
     const app = window.location.pathname.startsWith('/options.html')
       ? AppType.OPTIONS
       : AppType.POPUP;
 
+    let activeTab: chrome.tabs.Tab | undefined;
+
+    if (app === AppType.POPUP) {
+      const tabs = await chrome.tabs.query({
+        active: true,
+        currentWindow: true,
+      });
+      activeTab = tabs[0];
+    }
+
     const StyledApp = withStyles(styles)(App);
 
     ReactDOM.render(
-      <StyledApp settings={storage.settings} app={app} />,
+      <StyledApp settings={storage.settings} app={app} activeTab={activeTab} />,
       document.getElementById('root')
     );
   })

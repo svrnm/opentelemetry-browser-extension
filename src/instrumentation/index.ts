@@ -25,11 +25,14 @@ import {
   SimpleSpanProcessor,
 } from '@opentelemetry/tracing';
 import { Settings } from '../types';
+import { EventEmitterSpanExporter } from '../utils/EventEmitterSpanExporter';
 
 const configTag = document.getElementById('open-telemetry-instrumentation');
 const { exporters }: Settings = configTag
   ? JSON.parse(String(configTag.dataset.config))
   : {};
+
+const extensionId = configTag?.dataset.extensionId;
 
 // Minimum required setup - supports only synchronous operations
 const provider = new WebTracerProvider();
@@ -58,6 +61,27 @@ if (exporters.collectorTrace.enabled) {
       })
     )
   );
+}
+
+// This is not yet working, the idea is to submit spans to the background service worker
+// and send spans to exporters from there to work around CSP without removing it completely.
+if (exporters.background.enabled && extensionId) {
+  const eventEmitterExporter = new EventEmitterSpanExporter();
+  eventEmitterExporter.addEventListener('onSpans', ((event: CustomEvent) => {
+    window.postMessage(
+      {
+        type: 'OTEL_EXTENSION_SPANS',
+        extensionId,
+        spans: JSON.stringify(event.detail),
+      },
+      window.location.protocol +
+        '//' +
+        window.location.hostname +
+        ':' +
+        window.location.port
+    );
+  }) as EventListener);
+  provider.addSpanProcessor(new BatchSpanProcessor(eventEmitterExporter));
 }
 
 provider.register({

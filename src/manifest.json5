@@ -16,8 +16,12 @@
    "options_page": "options.html",
    "web_accessible_resources": [
       {
-         "resources": ["instrumentation.js"],
-         "matches": ["<all_urls>"]  
+         "resources": [
+            "instrumentation.js"
+            ],
+         "matches": [
+            "<all_urls>"
+         ]  
       }
    ]
 }

@@ -33,4 +33,7 @@ export const styles = (theme: Theme) =>
       marginBottom: theme.spacing(3),
       padding: theme.spacing(2),
     },
+    title: {
+      flexGrow: 1,
+    },
   });

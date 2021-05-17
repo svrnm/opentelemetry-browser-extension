@@ -16,6 +16,7 @@
     "strict": true,
     "strictNullChecks": true,
     "target": "es2017",
+    "lib": ["es2017", "dom", "webworker"],
     "incremental": true,
     "newLine": "LF",
     "skipLibCheck": true,
