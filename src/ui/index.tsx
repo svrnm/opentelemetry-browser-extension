@@ -100,14 +100,20 @@ class App extends React.Component<PopupProps, PopupState> {
       async () => {
         if (this.props.activeTab) {
           const tabId = Number(this.props.activeTab.id);
-          chrome.scripting.executeScript({
-            target: {
-              tabId,
-            },
-            function: () => {
-              window.location.reload();
-            },
-          });
+          if (chrome.scripting) {
+            chrome.scripting.executeScript({
+              target: {
+                tabId,
+              },
+              function: () => {
+                window.location.reload();
+              },
+            });
+          } else {
+            chrome.tabs.executeScript(tabId, {
+              code: 'window.location.reload();',
+            });
+          }
         }
       }
     );
@@ -326,9 +332,16 @@ loadFromStorage()
     let activeTab: chrome.tabs.Tab | undefined;
 
     if (app === AppType.POPUP) {
-      const tabs = await chrome.tabs.query({
-        active: true,
-        currentWindow: true,
+      const tabs = await new Promise<chrome.tabs.Tab[]>(resolve => {
+        chrome.tabs.query(
+          {
+            active: true,
+            lastFocusedWindow: true,
+          },
+          result => {
+            resolve(result);
+          }
+        );
       });
       activeTab = tabs[0];
     }

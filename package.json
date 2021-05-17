@@ -1,15 +1,20 @@
 {
   "name": "opentelemetry-browser-extension",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A browser extension that injects opentelemetry tracers into any website",
   "scripts": {
     "compile": "npx webpack --mode=production",
+    "compile:dev": "npx webpack --mode=development",
+    "compile:mv2": "npx webpack --mode=development --env MV=2",
+    "compile:mv3": "npx webpack --mode=development --env MV=3",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "codecov:browser": "nyc report --reporter=json && codecov -f coverage/*.json -p ../../",
     "tdd": "karma start",
     "test:browser": "nyc karma start --single-run",
-    "watch": "npx webpack --mode=development --watch"
+    "watch": "npx webpack --mode=development --watch",
+    "watch:mv2": "npx webpack --mode=development --watch --env MV=2",
+    "watch:mv3": "npx webpack --mode=development --watch --env MV=3"
   },
   "keywords": [],
   "author": "Severin Neumann <severin.neumann@altmuehlnet.de>",

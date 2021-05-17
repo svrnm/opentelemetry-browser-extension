@@ -11,6 +11,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+/* eslint-disable node/no-extraneous-import */
+
+import { getOptions } from 'loader-utils';
 import { capitalCase } from 'change-case';
 import * as json5 from 'json5';
 
@@ -25,6 +29,7 @@ interface IconSet {
 
 export default function (this: WebpackLoaderContext, source: string): string {
   const p = require('../../package.json');
+  const options = getOptions(this);
 
   const manifest5 = json5.parse(source);
 
@@ -36,9 +41,39 @@ export default function (this: WebpackLoaderContext, source: string): string {
 
   manifest5.action['default_icon'] = manifest5.icons;
 
+  const background =
+    Number(options.manifestVersion) === 3
+      ? {
+          service_worker: manifest5.background,
+        }
+      : {
+          scripts: [manifest5.background],
+        };
+
+  const web_accessible_resources =
+    Number(options.manifestVersion) === 3
+      ? [
+          {
+            resources: manifest5.web_accessible_resources,
+            matches: ['<all_urls>'],
+          },
+        ]
+      : manifest5.web_accessible_resources;
+
+  if (Number(options.manifestVersion) === 2) {
+    manifest5.permissions = manifest5.permissions.filter(
+      (permission: string) => permission !== 'scripting'
+    );
+    manifest5.browser_action = Object.assign({}, manifest5.action);
+    delete manifest5.action;
+  }
+
   const result = JSON.stringify(
     Object.assign(manifest5, {
+      manifest_version: options.manifestVersion,
       version: p.version,
+      background,
+      web_accessible_resources,
       description: p.description,
       name: capitalCase(p.name),
     }),

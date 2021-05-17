@@ -20,7 +20,9 @@ interface MyServiceWorkerGlobalScope extends ServiceWorkerGlobalScope {
   window: unknown;
 }
 declare const self: MyServiceWorkerGlobalScope;
-self.window = self;
+if (self.constructor.name !== 'Window') {
+  self.window = self;
+}
 
 import {
   ConsoleSpanExporter,
@@ -33,9 +35,6 @@ require('../manifest.json5');
 require('../icons/otel-logo.png');
 
 try {
-  // eslint-disable-next-line no-global-assign
-  // const tracing = require();
-
   chrome.tabs.onUpdated.addListener(
     (tabId: number, changeInfo: chrome.tabs.TabChangeInfo) => {
       if (changeInfo.status !== 'loading') {
@@ -43,52 +42,23 @@ try {
       }
 
       chrome.tabs.get(tabId, (tab: chrome.tabs.Tab) => {
+        console.log(tab);
         if (tab.url) {
-          chrome.scripting.executeScript({
-            target: {
+          if (chrome.scripting) {
+            chrome.scripting.executeScript({
+              target: {
+                allFrames: true,
+                tabId,
+              },
+              files: ['contentScript.js'],
+            });
+          } else {
+            console.log('execute');
+            chrome.tabs.executeScript(tabId, {
+              file: 'contentScript.js',
               allFrames: true,
-              tabId,
-            },
-            function: () => {
-              chrome.storage.local.get('settings', ({ settings }) => {
-                // Define label of badge.
-                const urlFilter = settings.urlFilter;
-                if (
-                  urlFilter !== '' &&
-                  (urlFilter === '*' ||
-                    document.location.href.includes(urlFilter))
-                ) {
-                  console.log(
-                    `[otel-extension] ${document.location.href} includes ${urlFilter}`
-                  );
-                  const script = chrome.runtime.getURL('instrumentation.js');
-                  console.log('[otel-extension] injecting instrumentation.js');
-                  const tag = document.createElement('script');
-                  tag.setAttribute('src', script);
-                  tag.setAttribute('id', 'open-telemetry-instrumentation');
-                  // Config is based via this data attribute, since CSP might not allow inline script tags, so this is more robust.
-                  tag.setAttribute('data-config', JSON.stringify(settings));
-                  tag.setAttribute('data-extension-id', chrome.runtime.id);
-                  document.head.appendChild(tag);
-
-                  window.addEventListener('message', event => {
-                    if (
-                      event.data.type === 'OTEL_EXTENSION_SPANS' &&
-                      event.data.extensionId === chrome.runtime.id
-                    ) {
-                      chrome.runtime.sendMessage(event.data);
-                    }
-                  });
-
-                  console.log('[otel-extension] instrumentation.js injected');
-                } else {
-                  console.log(
-                    `[otel-extension] ${document.location.href} does not include ${urlFilter}`
-                  );
-                }
-              });
-            },
-          });
+            });
+          }
         }
       });
     }

@@ -12,7 +12,7 @@
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "pretty": true,
-    "sourceMap": true,
+    "sourceMap": false,
     "strict": true,
     "strictNullChecks": true,
     "target": "es2017",
